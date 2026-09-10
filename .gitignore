@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.o
+*.elf
+*.out
+*.log
+.venv/
+venv/
+build/
+*.vcd
+*.fsdb
