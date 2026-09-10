@@ -6,6 +6,8 @@ quantized neural-network inference on a bare-metal RV64IMC RISC-V core (CV-Wally
 
 ## Status
 
+- [x] Toolchain setup — RV64IMC GCC (xPack prebuilt) + Spike (built from source) verified end-to-end
+      via a bare-metal smoke test (see `scripts/build_and_run_smoke.sh`)
 - [ ] Phase 1 — Model selection, W8A8 quantization, static C data export
 - [ ] Phase 2 — Bare-metal baseline kernels (B0) + golden-reference verification
 - [ ] Phase 3 — Spike workload profiling, bottleneck identification (top 3)
@@ -32,7 +34,14 @@ AI_USAGE.md   disclosure of AI-assisted work
 
 ## Build & run
 
-TBD once bare-metal toolchain (RV64IMC GCC + Spike) is set up. See [docs/](docs/).
+Toolchain: RV64IMC bare-metal GCC (xPack prebuilt `riscv-none-elf-gcc`) + Spike (built from source),
+set up under WSL2 Ubuntu. See [docs/toolchain_setup.md](docs/toolchain_setup.md) for install steps.
+
+Smoke test (verifies the whole pipeline):
+
+```bash
+./scripts/build_and_run_smoke.sh
+```
 
 ## Reference
 
