@@ -6,6 +6,7 @@ __pycache__/
 *.log
 .venv/
 venv/
+pyenv/
 build/
 *.vcd
 *.fsdb

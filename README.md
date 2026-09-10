@@ -8,8 +8,12 @@ quantized neural-network inference on a bare-metal RV64IMC RISC-V core (CV-Wally
 
 - [x] Toolchain setup — RV64IMC GCC (xPack prebuilt) + Spike (built from source) verified end-to-end
       via a bare-metal smoke test (see `scripts/build_and_run_smoke.sh`)
-- [ ] Phase 1 — Model selection, W8A8 quantization, static C data export
-- [ ] Phase 2 — Bare-metal baseline kernels (B0) + golden-reference verification
+- [x] Phase 1 — Model selected (MobileNetV3-Large, real pretrained weights), one representative
+      block (`features[3]`) quantized W8A8, exported to static C headers, golden reference
+      generated (see `scripts/model_prep/`, `DESIGN.md`)
+- [x] Phase 2 (partial) — Bare-metal INT8 kernels (pointwise conv, depthwise conv, requantization)
+      implemented and verified bit-exact against the golden reference under Spike
+      (`scripts/build_and_run_block3.sh`); more blocks/full model still TBD
 - [ ] Phase 3 — Spike workload profiling, bottleneck identification (top 3)
 - [ ] Phase 4 — `Xqmac8` + requantization instruction design, Spike implementation, B1/X1
 - [ ] Phase 5 — Midterm report + presentation
@@ -17,7 +21,8 @@ quantized neural-network inference on a bare-metal RV64IMC RISC-V core (CV-Wally
 
 ## Model
 
-TBD — candidate: MobileNetV3-Large (W8A8, ~0.22 GMAC). See [DESIGN.md](DESIGN.md) for rationale.
+MobileNetV3-Large (torchvision pretrained, real ImageNet weights, 5.48M params). First
+bare-metal target: `features[3]` (InvertedResidual block, no SE). See [DESIGN.md](DESIGN.md).
 
 ## Repository structure
 
