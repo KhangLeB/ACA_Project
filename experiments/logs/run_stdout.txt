@@ -1,0 +1,52 @@
+== gemm32 ==
+/home/legiakhang/riscv-tools/xpack-riscv-none-elf-gcc-14.2.0-3/bin/../lib/gcc/riscv-none-elf/14.2.0/../../../../riscv-none-elf/bin/ld: warning: /mnt/d/000_CAOHOC/NTHU_Courses/Advanced Computer Architecture/Project/experiments/logs/gemm32.elf has a LOAD segment with RWX permissions
+=== gemm32 ===
+total retired instructions: 255000
+  load            65536 ( 25.7%)
+  store            3073 (  1.2%)
+  alu            112886 ( 44.3%)
+  multiply        32768 ( 12.9%)
+  branch          40732 ( 16.0%)
+  other               0 (  0.0%)
+  unknown             5 (  0.0%)  <- PC not found in objdump (e.g. trailing spin loop)
+== conv1x1 ==
+/mnt/d/000_CAOHOC/NTHU_Courses/Advanced Computer Architecture/Project/src/profile_test/main.c:25:15: warning: 'out_buf' defined but not used [-Wunused-variable]
+   25 | static int8_t out_buf[P_MID * P_HW];
+      |               ^~~~~~~
+/home/legiakhang/riscv-tools/xpack-riscv-none-elf-gcc-14.2.0-3/bin/../lib/gcc/riscv-none-elf/14.2.0/../../../../riscv-none-elf/bin/ld: warning: /mnt/d/000_CAOHOC/NTHU_Courses/Advanced Computer Architecture/Project/experiments/logs/conv1x1.elf has a LOAD segment with RWX permissions
+=== conv1x1 ===
+total retired instructions: 970000
+  load           221190 ( 22.8%)
+  store           14407 (  1.5%)
+  alu            495547 ( 51.1%)
+  multiply       110592 ( 11.4%)
+  branch         128259 ( 13.2%)
+  other               0 (  0.0%)
+  unknown             5 (  0.0%)  <- PC not found in objdump (e.g. trailing spin loop)
+== depthwise ==
+/mnt/d/000_CAOHOC/NTHU_Courses/Advanced Computer Architecture/Project/src/profile_test/main.c:25:15: warning: 'out_buf' defined but not used [-Wunused-variable]
+   25 | static int8_t out_buf[P_MID * P_HW];
+      |               ^~~~~~~
+/home/legiakhang/riscv-tools/xpack-riscv-none-elf-gcc-14.2.0-3/bin/../lib/gcc/riscv-none-elf/14.2.0/../../../../riscv-none-elf/bin/ld: warning: /mnt/d/000_CAOHOC/NTHU_Courses/Advanced Computer Architecture/Project/experiments/logs/depthwise.elf has a LOAD segment with RWX permissions
+=== depthwise ===
+total retired instructions: 840000
+  load           100669 ( 12.0%)
+  store           34142 (  4.1%)
+  alu            428663 ( 51.0%)
+  multiply        41473 (  4.9%)
+  branch         235048 ( 28.0%)
+  other               0 (  0.0%)
+  unknown             5 (  0.0%)  <- PC not found in objdump (e.g. trailing spin loop)
+== requantize ==
+/home/legiakhang/riscv-tools/xpack-riscv-none-elf-gcc-14.2.0-3/bin/../lib/gcc/riscv-none-elf/14.2.0/../../../../riscv-none-elf/bin/ld: warning: /mnt/d/000_CAOHOC/NTHU_Courses/Advanced Computer Architecture/Project/experiments/logs/requantize.elf has a LOAD segment with RWX permissions
+=== requantize ===
+total retired instructions: 85000
+  load            13831 ( 16.3%)
+  store            4760 (  5.6%)
+  alu             42311 ( 49.8%)
+  multiply         4608 (  5.4%)
+  branch          19485 ( 22.9%)
+  other               0 (  0.0%)
+  unknown             5 (  0.0%)  <- PC not found in objdump (e.g. trailing spin loop)
+== block3_full ==
+/home/legiakhang/riscv-tools/xpack-riscv-none-elf-gcc-14.2.0-3/bin/../lib/gcc/riscv-none-elf/14.2.0/../../../../riscv-none-elf/bin/ld: warning: /mnt/d/000_CAOHOC/NTHU_Courses/Advanced Computer Architecture/Project/experiments/logs/block3_full.elf has a LOAD segment with RWX permissions

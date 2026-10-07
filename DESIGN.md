@@ -47,20 +47,63 @@ ISA extension design itself is still draft — to be filled in during Phase 4, a
 bottleneck profiling (Phase 3) is complete. Instruction semantics must be justified by measured
 bottlenecks, not chosen in advance.
 
+**Phase 4 step 1 done (2026-10-07):** instruction semantics locked and validated as C software
+models (`src/kernels/xqmac.h`); `conv1x1_xqmac` rewritten to use them and proven bit-exact
+against the scalar `conv1x1_int` reference plus directed edge-case tests
+(`scripts/build_and_run_xqmac.sh`, Spike exit 0).
+
+**Phase 4 step 2 done (2026-10-07):** both instructions implemented as a real Spike extension
+(`src/spike_ext/xqnn.cc`, custom-0 opcode 0x0b) and emitted from the kernel via `.insn` inline asm
+(`-DXQMAC_USE_INSN`). Functionally verified bit-exact (`scripts/build_and_run_xqmac_insn.sh`) and
+measured **4.13× dynamic-instruction reduction** for conv1x1 (B0 970k → X1 235k; 13,824 retired
+xqmac8 = 8 MACs each), **1.55×** for requantize (Xqrequant), and **1.21×** for depthwise from the
+B1 interior/border software split (branches 28%→21%) — meets the required ≥2× GEMM/FC target
+(`scripts/measure_phase4.sh`, `results/phase4_instruction_mix.csv`, EXPERIMENTS.md 2026-10-07).
+X1's new dominant category is ALU (51%: address generation, loop control, `zp·colsum` correction),
+motivating hardware-loop / post-increment / fused extensions next. Remaining before midterm: push
+Phase 3+4 to GitHub and write the report; then CV-Wally RTL.
+
 ## `Xqmac8` — packed INT8 multiply-accumulate
 
-- **Purpose**: TBD (fill in after profiling — expected to reduce scalar multiply/loop overhead).
-- **Semantics**: `acc += A0*W0 + A1*W1 + ... + A7*W7` over 8 packed INT8 lanes.
-- **Encoding**: TBD (custom-0/custom-1 opcode space, operand registers, funct fields).
-- **Operand packing**: TBD (two 64-bit regs holding 8x INT8 each, or memory-packed).
-- **Accumulator width**: TBD (e.g. single 32-bit acc vs 8x lane-wise accumulators) — document tradeoff.
-- **Exceptions/edge cases**: overflow/saturation behavior, alignment requirements.
+- **Purpose**: confirmed by Phase 3 Spike profiling (EXPERIMENTS.md, 2026-09-12): in the naive
+  scalar kernels only ~11-13% of dynamic instructions are the actual `mul`, while ~7-9 total
+  instructions retire per useful MAC (sign-extension, zero-point subtraction, address
+  computation, load/store). Folding 8 loads + 8 sign-extends + 8 muls + 8 adds into one packed
+  instruction directly targets this dominant overhead category.
+- **Semantics**: `acc += A0*W0 + A1*W1 + ... + A7*W7` over 8 packed INT8 lanes. Reference
+  implementation: `xqmac8()` in `src/kernels/xqmac.h` (validated bit-exact, 2026-10-07).
+- **Operand/accumulator model** (locked 2026-10-07):
+  - Two 64-bit GPR source operands `rs1`, `rs2`, each holding 8 **signed INT8** lanes
+    (lane i = bits [8i+7:8i], little-endian).
+  - Accumulator is a 32-bit GPR, read-modify-write: `rd = rd + dot8(rs1, rs2)`. 32 bits is
+    sufficient — worst case is 8*128*128 = 131072 per instruction, and a full K=512 reduction
+    stays below 2^24, far inside int32. This avoids a wider/second accumulator register.
+  - **Zero-point handling (resolves the "packed INT8 is broken by (a-zp)" risk):** Xqmac8 does
+    NOT subtract the activation zero-point. The kernel folds it out of the inner loop once per
+    output channel using `sum((a-z)*w) = sum(a*w) - z*sum(w)` (weights are symmetric, zp_w=0,
+    so only the activation term needs correction). The packed operands therefore stay true INT8
+    and the 8-lane packing is never widened to 9 bits.
+  - **Data layout (resolves the CHW packed-load risk):** `conv1x1_xqmac` gathers each output
+    pixel's `c_in` activations into a contiguous scratch buffer once, then reuses it across all
+    `c_out` channels. Weights `w[oc*c_in+ic]` are already contiguous in the reduction dimension,
+    so after the gather BOTH operands feed packed 64-bit loads. The gather also directly attacks
+    Phase-3 bottleneck #3 (no activation reuse across output channels).
+  - Tail handling: `c_in` not a multiple of 8 falls back to scalar MACs for the remainder (all
+    block3 configs have c_in in {24,72}, both divisible by 8, but the kernel stays general).
+- **Encoding**: custom-0 opcode space, R-type (`rd`, `rs1`, `rs2`, funct3/funct7). Exact bit
+  fields to be fixed when the Spike decoder stub is added (Phase 4 step 2).
 
 ## Requantization instruction
 
-- **Purpose**: fuse `accumulator -> round -> shift -> zero-point add -> saturate` into one op.
-- **Semantics**: TBD.
-- **Encoding**: TBD.
+- **Purpose**: fuse `accumulator -> fixed-point multiply -> round -> shift -> zero-point add ->
+  saturate` into one op (Phase-3 showed ~18 instr per output element for this "single" operation).
+- **Semantics**: `xqrequant()` in `src/kernels/xqmac.h` — `real_multiplier = q_fixed * 2^(shift-31)`,
+  round-half-up on the right shift, add zero-point, saturate to `[lo, hi]` (lo = zero_point when
+  fused with ReLU, else -128; hi = 127). Numerically identical to
+  `multiply_by_quantized_multiplier()` + clamp in `src/kernels/kernels.c` (so it stays bit-exact
+  against the Phase-1 golden reference).
+- **Encoding**: TBD (Phase 4 step 2). Likely a two-instruction pair or an immediate-fielded op
+  because it needs q_fixed, shift, zp, and saturation bounds — operand count exceeds one R-type.
 
 ## Design alternatives considered
 
