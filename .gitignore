@@ -10,3 +10,7 @@ pyenv/
 build/
 *.vcd
 *.fsdb
+
+# Internal progress-tracking note (not a required deliverable) - kept locally for reference,
+# intentionally not tracked/committed to GitHub.
+STATUS.md

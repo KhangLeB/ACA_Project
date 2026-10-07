@@ -48,6 +48,19 @@ Binary: `~/riscv-tools/spike-install/bin/spike`. Run with `--isa=rv64imc <elf>`.
 Builds `src/smoke_test/` (crt0.S + link.ld + main.c, HTIF tohost/fromhost exit protocol) and runs it
 under Spike. Expected: `Spike exit code: 0`.
 
+## 5. Spike custom extension (Xqmac8/Xqrequant, Phase 4)
+
+Requires step 3's Spike source tree still present at `~/riscv-tools/spike-src` with its `build/`
+directory configured (the `make install` in step 3 already ran `./configure`, so this just adds a
+new source file and relinks):
+
+```bash
+./scripts/build_spike_ext.sh          # copies src/spike_ext/xqnn.cc into Spike and rebuilds it
+./scripts/build_and_run_xqmac_insn.sh # verify: Spike exit code 0
+```
+
+See `src/spike_ext/xqnn.cc` for the instruction semantics and DESIGN.md for the rationale.
+
 ## Notes
 
 - If `sudo` prompts fail/loop in WSL, use `wsl -d Ubuntu -u root -- <cmd>` instead (no password needed).
